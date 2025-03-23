@@ -1,0 +1,3 @@
+(library
+ (name hw3)
+ (public_name hw3))

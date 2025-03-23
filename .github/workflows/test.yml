@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup OCaml
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 4.14.x
+          opam-repositories: |
+            default: https://opam.ocaml.org
+
+      - name: Dependencies
+        run: |
+          opam install dune alcotest zanuda
+
+      - name: Build
+        run: |
+          eval $(opam env)
+          dune build @check
+
+      - name: Run tests
+        run: |
+          eval $(opam env)
+          dune runtest
+
+      - name: Run linter
+        run: |
+          eval $(opam env)
+          zanuda -dir .      
