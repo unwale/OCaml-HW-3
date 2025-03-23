@@ -15,12 +15,16 @@ let parse_tactic s =
   | "an" -> AndElim
   | "co" -> Contradiction
   | "qe" -> Qed
-  | _ -> failwith ("unknown tactic: " ^ s)
+  | _ ->
+      Printf.printf "unknown tactic: %s" s;
+      exit 1
 
 let init_proof_state s =
   match parse_formula s with
   | Parsed (f, _) -> { goal = f; context = []; remaining_goals = [] }
-  | Failed -> failwith "failed to parse formula"
+  | Failed ->
+      Printf.printf "failed to parse formula\n";
+      exit 1
 
 let rec string_of_formula = function
   | Var v -> v
@@ -45,25 +49,20 @@ let print_state state =
 
   print_newline ()
 
-let main () =
-  let formula_str = Sys.argv.(1) in
-  let state = ref (init_proof_state formula_str) in
-  Printf.printf "starting proof for: %s\n" formula_str;
-  print_state !state;
+let rec proof_loop state =
+  print_state state;
+  Printf.printf "> ";
+  let input = read_line () in
+  match String.trim input with
+  | "" -> proof_loop state
+  | tactic_str -> (
+      let tactic = parse_tactic tactic_str in
+      match apply_tactic state tactic with
+      | Ok new_state -> (
+          match tactic with
+          | Contradiction | Axiom -> proof_loop new_state
+          | Qed -> Printf.printf "proof completed\n"
+          | _ -> proof_loop new_state)
+      | Error message -> Printf.printf "error: %s\n\n" message)
 
-  while true do
-    Printf.printf "> ";
-    let input = read_line () in
-    match String.trim input with
-    | "" -> ()
-    | tactic_str -> (
-        let tactic = parse_tactic tactic_str in
-        match apply_tactic !state tactic with
-        | Ok new_state ->
-            state := new_state;
-            print_state !state;
-            if tactic = Qed then Printf.printf "proof completed\n %d" (1 / 0)
-        | Error message -> Printf.printf "error: %s\n\n" message)
-  done
-
-let () = main ()
+let () = proof_loop (init_proof_state Sys.argv.(1))
