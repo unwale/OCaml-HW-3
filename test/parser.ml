@@ -1,7 +1,7 @@
 open Alcotest
 open Hw3.Parser
 
-let equal_result r1 r2 =
+let equal_parser_result r1 r2 =
   match (r1, r2) with
   | Failed, Failed -> true
   | Parsed (Var s1, r1), Parsed (Var s2, r2) -> s1 = s2 && r1 = r2
@@ -27,37 +27,41 @@ let rec pp_formula ppf = function
   | Equiv (f1, f2) ->
       Format.fprintf ppf "Equiv (%a, %a)" pp_formula f1 pp_formula f2
 
-let pp_result ppf = function
+let pp_parser_result ppf = function
   | Failed -> Format.fprintf ppf "Failed"
   | Parsed (v, rest) ->
       Format.fprintf ppf "Parsed (%a, [%s])" pp_formula v
         (String.concat "; " (List.map (String.make 1) rest))
 
-let result = testable pp_result equal_result
+let parser_result = testable pp_parser_result equal_parser_result
 
 let test_variable () =
-  check result "parse 'abc'"
+  check parser_result "parse 'abc'"
     (Parsed (Var "abc", [ ' '; 'd' ]))
     (variable [ 'a'; 'b'; 'c'; ' '; 'd' ]);
-  check result "parse 'PQ'" (Parsed (Var "PQ", [])) (variable [ 'P'; 'Q' ]);
-  check result "fail on no letters" Failed (variable [ ' '; 'x' ])
+  check parser_result "parse 'PQ'"
+    (Parsed (Var "PQ", []))
+    (variable [ 'P'; 'Q' ]);
+  check parser_result "fail on no letters" Failed (variable [ ' '; 'x' ])
 
 let test_formula () =
-  check result "parse variable 'a'" (Parsed (Var "a", [])) (parse_formula "a");
-  check result "parse conjunction 'a/\\b'"
+  check parser_result "parse variable 'a'"
+    (Parsed (Var "a", []))
+    (parse_formula "a");
+  check parser_result "parse conjunction 'a/\\b'"
     (Parsed (And (Var "a", Var "b"), []))
     (parse_formula "a/\\b");
-  check result "parse not '~a'"
+  check parser_result "parse not '~a'"
     (Parsed (Not (Var "a"), []))
     (parse_formula "~a");
-  check result "parse complex '~(a/\\b)->c->d'"
+  check parser_result "parse complex '~(a/\\b)->c->d'"
     (Parsed
        (Implies (Not (And (Var "a", Var "b")), Implies (Var "c", Var "d")), []))
     (parse_formula "~(a/\\b)->c->d");
-  check result "parse complex with equiv 'a/\\b<->c->d'"
+  check parser_result "parse complex with equiv 'a/\\b<->c->d'"
     (Parsed (Equiv (And (Var "a", Var "b"), Implies (Var "c", Var "d")), []))
     (parse_formula "a/\\b<->c->d");
-  check result "fail on invalid '~)'" Failed (parse_formula "~)")
+  check parser_result "fail on invalid '~)'" Failed (parse_formula "~)")
 
 let () =
   run "Formula Parser Tests"

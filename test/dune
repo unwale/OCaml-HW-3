@@ -1,3 +1,9 @@
 (test
- (name test_hw3)
+ (name parser)
+ (modules parser)
+ (libraries alcotest hw3))
+
+(test
+ (name proofs)
+ (modules proofs)
  (libraries alcotest hw3))
