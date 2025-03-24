@@ -19,7 +19,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-ocaml-static-4.14.x
+          key: ${{ runner.os }}-ocaml-static-4.14
 
       - name: Install OCaml and OPAM
         if: steps.cache-ocaml.outputs.cache-hit != 'true'
