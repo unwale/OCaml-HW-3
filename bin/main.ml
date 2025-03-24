@@ -23,7 +23,7 @@ let init_proof_state s =
   match parse_formula s with
   | Parsed (f, _) -> { goal = f; context = []; remaining_goals = [] }
   | Failed ->
-      Printf.printf "failed to parse formula\n";
+      Printf.printf " failed to parse formula\n";
       exit 1
 
 let rec string_of_formula = function
