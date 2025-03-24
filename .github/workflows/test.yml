@@ -14,23 +14,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
     
-      - name: Setup OCaml
-        uses: ocaml/setup-ocaml@v3
-        with:
-          ocaml-compiler: 4.14.x
-          cache-prefix: ${{ runner.os }}-opam-ocaml-4.14.x
-          opam-repositories: |
-            default: https://opam.ocaml.org
-
-      - name: Cache OPAM dependencies
-        id: cache-opam
+      - name: Cache OCaml Environment
+        id: cache-ocaml
         uses: actions/cache@v3
         with:
           path: ~/.opam
-          key: ${{ runner.os }}-opam-ocaml-4.14.x
+          key: ${{ runner.os }}-ocaml-static-4.14.x
+
+      - name: Install OCaml and OPAM
+        if: steps.cache-ocaml.outputs.cache-hit != 'true'
+        run: |
+          # Install OCaml and OPAM via apt
+          sudo apt-get update
+          sudo apt-get install -y ocaml opam
+          # Initialize OPAM
+          opam init --disable-sandboxing --yes
+          # Set up OCaml 4.14.x (or your version)
+          opam switch create 4.14.1  # Adjust version if needed
+          eval $(opam env)
 
       - name: Dependencies
-        if: steps.cache-opam.outputs.cache-hit != 'true'
+        if: steps.cache-ocaml.outputs.cache-hit != 'true'
         run: |
           opam install dune alcotest zanuda
 
