@@ -13,16 +13,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
+      
+      - name: Cache OPAM dependencies
+        id: cache-opam
+        uses: actions/cache@v3
+        with:
+          path: ~/.opam
+          key: ${{ runner.os }}-opam-ocaml-4.14.x
+    
       - name: Setup OCaml
+        if: steps.cache-opam.outputs.cache-hit != 'true'
         uses: ocaml/setup-ocaml@v3
         with:
           ocaml-compiler: 4.14.x
-          cache-prefix: ${{ runner.os }}-opam
           opam-repositories: |
             default: https://opam.ocaml.org
 
       - name: Dependencies
+        if: steps.cache-opam.outputs.cache-hit != 'true'
         run: |
           opam install dune alcotest zanuda
 
